@@ -1,40 +1,41 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 app.use(express.json());
-//app.use(express.static('public'));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-const loadTodos = () => {
+const loadTodos = async () => {
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'todos.json'), 'utf8');
-        return JSON.parse(data);
+        const todos = await kv.get('todos');
+        return todos || [];
     } catch (err) {
+        console.error('Error loading todos:', err);
         return [];
     }
 };
 
-const saveTodos = (todos) => {
-    fs.writeFileSync(path.join(__dirname, 'todos.json'), JSON.stringify(todos, null, 2));
+const saveTodos = async (todos) => {
+    try {
+        await kv.set('todos', todos);
+    } catch (err) {
+        console.error('Error saving todos:', err);
+    }
 };
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
-app.post('/cmd', (req, res) => {
+app.post('/cmd', async (req, res) => {
     const { command, args } = req.body;
     console.log(`Received command: ${command} with args: ${args}`);
 
-    let todos = loadTodos();
+    let todos = await loadTodos();
     let output = '';
 
     switch (command) {
         case 'add':
             const newTodo = { task: args.join(' '), done: false };
             todos.push(newTodo);
-            saveTodos(todos);
+            await saveTodos(todos);
             output = `Added new todo: "${newTodo.task}"`;
             break;
 
@@ -48,7 +49,7 @@ app.post('/cmd', (req, res) => {
             const indexToMark = parseInt(args[0], 10) - 1;
             if (todos[indexToMark]) {
                 todos[indexToMark].done = true;
-                saveTodos(todos);
+                await saveTodos(todos);
                 output = `Marked todo as done: "${todos[indexToMark].task}"`;
             } else {
                 output = 'Invalid todo number';
@@ -59,7 +60,7 @@ app.post('/cmd', (req, res) => {
             const indexToDelete = parseInt(args[0], 10) - 1;
             if (todos[indexToDelete]) {
                 const deletedTodo = todos.splice(indexToDelete, 1);
-                saveTodos(todos);
+                await saveTodos(todos);
                 output = `Deleted todo: "${deletedTodo[0].task}"`;
             } else {
                 output = 'Invalid todo number';
@@ -74,10 +75,8 @@ app.post('/cmd', (req, res) => {
     res.json({ output });
 });
 
-
-const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
-// });
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 module.exports = app;
