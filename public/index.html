@@ -6,51 +6,98 @@
     <title>Todo CLI</title>
     <style>
         body {
-            background-color: black;
-            color: white;
-            font-family: monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+        #instructions {
+            width: 250px;
+            padding: 20px;
+            background-color: #252526;
+            overflow-y: auto;
+        }
+        #cli {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
             padding: 20px;
         }
         #output {
+            flex-grow: 1;
+            background-color: #000000;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            overflow-y: auto;
             white-space: pre-wrap;
         }
+        #input-container {
+            display: flex;
+            align-items: center;
+        }
+        #prompt {
+            color: #569cd6;
+            margin-right: 5px;
+        }
         #input {
-            width: 100%;
-            border: none;
+            flex-grow: 1;
             background: none;
-            color: white;
-            font-family: monospace;
-            outline: none;
+            border: none;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
             font-size: 16px;
+            outline: none;
         }
     </style>
 </head>
 <body>
-    <div id="output"></div>
-    <input id="input" autofocus>
+    <div id="instructions">
+        <h2>Todo CLI Instructions</h2>
+        <p>Available commands:</p>
+        <ul>
+            <li><strong>add [task]</strong>: Add a new todo</li>
+            <li><strong>list</strong>: List all todos</li>
+            <li><strong>done [number]</strong>: Mark a todo as done</li>
+            <li><strong>delete [number]</strong>: Delete a todo</li>
+        </ul>
+        <p>Example:</p>
+        <pre>
+> add Buy groceries
+> list
+> done 1
+> delete 2
+        </pre>
+    </div>
+    <div id="cli">
+        <div id="output"></div>
+        <div id="input-container">
+            <span id="prompt">></span>
+            <input id="input" type="text" autofocus>
+        </div>
+    </div>
     <script>
         const input = document.getElementById('input');
         const output = document.getElementById('output');
-
         input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const commandText = input.value.trim();
                 if (commandText) {
                     output.innerHTML += `> ${commandText}\n`;
-
                     const [command, ...args] = commandText.split(/\s+/);
-
                     const response = await fetch('/cmd', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ command, args }),
                     });
-
                     const result = await response.json();
                     output.innerHTML += `${result.output}\n`;
-
                     input.value = '';
-                    window.scrollTo(0, document.body.scrollHeight);
+                    output.scrollTop = output.scrollHeight;
                 }
             }
         });
