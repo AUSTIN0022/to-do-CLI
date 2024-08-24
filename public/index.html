@@ -9,37 +9,10 @@
             background-color: black;
             color: white;
             font-family: monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        #container {
-            display: flex;
-            width: 80%;
-            max-width: 800px;
-            height: 80%;
-            border: 1px solid #333;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-        #instructions {
-            width: 30%;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: #222;
-            border-right: 1px solid #333;
-        }
-        #instructions h2 {
-            margin-top: 0;
+            padding: 20px;
         }
         #output {
-            width: 70%;
-            padding: 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            background-color: #111;
-            color: white;
+            white-space: pre-wrap;
         }
         #input {
             width: 100%;
@@ -49,51 +22,34 @@
             font-family: monospace;
             outline: none;
             font-size: 16px;
-            padding: 10px;
-            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <div id="instructions">
-            <h2>Instructions</h2>
-            <p>Use the following commands:</p>
-            <ul>
-                <li><strong>add [task]</strong> - Add a new todo item.</li>
-                <li><strong>list</strong> - List all todos.</li>
-                <li><strong>done [number]</strong> - Mark a todo item as done.</li>
-                <li><strong>delete [number]</strong> - Delete a todo item.</li>
-            </ul>
-        </div>
-        <div id="output">
-            <input id="input" autofocus>
-        </div>
-    </div>
+    <div id="output"></div>
+    <input id="input" autofocus>
     <script>
         const input = document.getElementById('input');
         const output = document.getElementById('output');
 
         input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
-                const commandText = input.value.trim();
-                if (commandText) {
-                    output.innerHTML += `> ${commandText}\n`;
+                const commandText = input.value;
+                output.innerHTML += `> ${commandText}\n`;
 
-                    const [command, ...args] = commandText.split(/\s+/);
+                const [command, ...args] = commandText.split(' ');
 
-                    const response = await fetch('/cmd', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ command, args }),
-                    });
+                const response = await fetch('/cmd', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command, args }),
+                });
 
-                    const result = await response.json();
-                    output.innerHTML += `${result.output}\n`;
+                const result = await response.json();
+                output.innerHTML += `${result.output}\n`;
 
-                    input.value = '';
-                    window.scrollTo(0, document.body.scrollHeight);
-                }
+                input.value = '';
+                window.scrollTo(0, document.body.scrollHeight);
             }
         });
     </script>
