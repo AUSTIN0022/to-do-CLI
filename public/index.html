@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo CLI</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #output {
+            white-space: pre-wrap;
+        }
+        #input {
+            width: 100%;
+            border: none;
+            background: none;
+            color: white;
+            font-family: monospace;
+            outline: none;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+    <input id="input" autofocus>
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const commandText = input.value.trim();
+                if (commandText) {
+                    output.innerHTML += `> ${commandText}\n`;
+
+                    const [command, ...args] = commandText.split(/\s+/);
+
+                    const response = await fetch('/cmd', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command, args }),
+                    });
+
+                    const result = await response.json();
+                    output.innerHTML += `${result.output}\n`;
+
+                    input.value = '';
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
