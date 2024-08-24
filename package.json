@@ -4,11 +4,11 @@
     "description": "A simple CLI-based todo list application",
     "main": "index.js",
     "scripts": {
-      "start": "node index.js",
-      "vercel-build": "echo 'Ready for Vercel deployment'"
+        "start": "node index.js",
+        "vercel-build": "echo 'Ready for Vercel deployment'"
     },
     "dependencies": {
-      "express": "^4.17.1"
+        "@vercel/kv": "^2.0.0",
+        "express": "^4.17.1"
     }
-  }
-  
+}
