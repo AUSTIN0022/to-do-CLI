@@ -1,15 +1,14 @@
 {
-  "name": "to-do",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Austin",
-  "license": "ISC",
-  "dependencies": {
-    "commander": "^12.1.0"
+    "name": "to-do",
+    "version": "1.0.0",
+    "description": "A simple CLI-based todo list application",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js",
+      "vercel-build": "echo 'Ready for Vercel deployment'"
+    },
+    "dependencies": {
+      "express": "^4.17.1"
+    }
   }
-}
+  

@@ -1,14 +1,10 @@
 [
   {
-    "task": "\"meet\"",
+    "task": "meet",
     "done": true
   },
   {
-    "task": "\"Read a book\"",
-    "done": false
-  },
-  {
-    "task": "buy apple",
+    "task": "but pens",
     "done": false
   }
 ]

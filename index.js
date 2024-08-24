@@ -1,76 +1,74 @@
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const express = require('express');
+
 const app = express();
-const todosFile = path.join(__dirname, 'todos.json');
-
-app.use(express.static('public'));
 app.use(express.json());
+app.use(express.static('public'));
 
-// Helper functions to load and save todos
-function loadTodos() {
-    if (!fs.existsSync(todosFile)) {
+
+const loadTodos = () => {
+    try {
+        const data = fs.readFileSync(path.join(__dirname, 'todos.json'), 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
         return [];
     }
-    const data = fs.readFileSync(todosFile, 'utf8');
-    return JSON.parse(data);
-}
+};
 
-function saveTodos(todos) {
-    fs.writeFileSync(todosFile, JSON.stringify(todos, null, 2));
-}
+const saveTodos = (todos) => {
+    fs.writeFileSync(path.join(__dirname, 'todos.json'), JSON.stringify(todos, null, 2));
+};
 
-// Handle commands
 app.post('/cmd', (req, res) => {
     const { command, args } = req.body;
-    let output = '';
     console.log(`Received command: ${command} with args: ${args}`);
 
-    const todos = loadTodos();
+    let todos = loadTodos();
+    let output = '';
 
     switch (command) {
         case 'add':
-            const task = args.join(' ');
-            todos.push({ task, done: false });
+            const newTodo = { task: args.join(' '), done: false };
+            todos.push(newTodo);
             saveTodos(todos);
-            output = `Added new todo: "${task}"`;
+            output = `Added new todo: "${newTodo.task}"`;
             break;
-        case 'delete':
-            const deleteIndex = parseInt(args[0], 10) - 1;
-            if (deleteIndex >= 0 && deleteIndex < todos.length) {
-                const [removed] = todos.splice(deleteIndex, 1);
-                saveTodos(todos);
-                output = `Deleted todo: "${removed.task}"`;
-            } else {
-                output = 'Invalid index.';
-            }
-            break;
-        case 'done':
-            const doneIndex = parseInt(args[0], 10) - 1;
-            if (doneIndex >= 0 && doneIndex < todos.length) {
-                todos[doneIndex].done = true;
-                saveTodos(todos);
-                output = `Marked todo as done: "${todos[doneIndex].task}"`;
-            } else {
-                output = 'Invalid index.';
-            }
-            break;
+
         case 'list':
-            if (todos.length === 0) {
-                output = 'No todos found.';
+            output = todos.map((todo, index) => 
+                `${index + 1}. [${todo.done ? '✓' : ' '}] ${todo.task}`
+            ).join('\n');
+            break;
+
+        case 'done':
+            const indexToMark = parseInt(args[0], 10) - 1;
+            if (todos[indexToMark]) {
+                todos[indexToMark].done = true;
+                saveTodos(todos);
+                output = `Marked todo as done: "${todos[indexToMark].task}"`;
             } else {
-                todos.forEach((todo, index) => {
-                    const status = todo.done ? '[✓]' : '[ ]';
-                    output += `${index + 1}. ${status} ${todo.task}\n`;
-                });
+                output = 'Invalid todo number';
             }
             break;
+
+        case 'delete':
+            const indexToDelete = parseInt(args[0], 10) - 1;
+            if (todos[indexToDelete]) {
+                const deletedTodo = todos.splice(indexToDelete, 1);
+                saveTodos(todos);
+                output = `Deleted todo: "${deletedTodo[0].task}"`;
+            } else {
+                output = 'Invalid todo number';
+            }
+            break;
+
         default:
-            output = 'Unknown command.';
+            output = `Unknown command: ${command}`;
             break;
     }
 
-    res.send({ output });
+    res.json({ output });
 });
 
 const PORT = process.env.PORT || 3000;
