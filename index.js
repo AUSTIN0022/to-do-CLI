@@ -4,8 +4,8 @@ const path = require('path');
 
 const app = express();
 app.use(express.json());
-app.use(express.static('public'));
-
+//app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 const loadTodos = () => {
     try {
@@ -19,6 +19,9 @@ const loadTodos = () => {
 const saveTodos = (todos) => {
     fs.writeFileSync(path.join(__dirname, 'todos.json'), JSON.stringify(todos, null, 2));
 };
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.post('/cmd', (req, res) => {
     const { command, args } = req.body;
@@ -67,11 +70,14 @@ app.post('/cmd', (req, res) => {
             output = `Unknown command: ${command}`;
             break;
     }
-
+    
     res.json({ output });
 });
 
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
+
+module.exports = app;
